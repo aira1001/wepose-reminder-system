@@ -21,6 +21,12 @@ export default function Home() {
   const calculatedRows = useMemo(() => calculateAll(rawRows, config), [rawRows, config]);
   const calendarEvents = useMemo(() => buildCalendarEvents(calculatedRows), [calculatedRows]);
 
+  const availableCountries = useMemo(
+    () =>
+      Array.from(new Set(rawRows.map((r) => String(r.negara || "").trim()).filter(Boolean))).sort(),
+    [rawRows]
+  );
+
   async function handleFileUpload(e) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -99,7 +105,7 @@ export default function Home() {
 
       {rawRows.length > 0 && (
         <>
-          <ConfigPanel config={config} setConfig={setConfig} />
+          <ConfigPanel config={config} setConfig={setConfig} availableCountries={availableCountries} />
 
           <section className="actions-row">
             <button className="btn btn-primary" onClick={handleExportIcs}>

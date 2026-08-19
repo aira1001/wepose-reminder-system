@@ -15,6 +15,7 @@ export default function ResultTable({ rows }) {
             <th>Nama</th>
             <th>No. Paspor</th>
             <th>Jenis Visa</th>
+            <th>Negara</th>
             <th>Keberangkatan</th>
             <th>Target Visa Selesai</th>
             <th>Latest Safe Submit</th>
@@ -33,6 +34,7 @@ export default function ResultTable({ rows }) {
               <td>{row.nama || "-"}</td>
               <td>{row.no_paspor || "-"}</td>
               <td>{row.jenis_visa || "-"}</td>
+              <td>{row.negara || "-"}</td>
               <td>{fmt(row.departureDate)}</td>
               <td>{fmt(row.targetVisaSelesai)}</td>
               <td className="cell-critical">{fmt(row.latestSafeSubmit)}</td>

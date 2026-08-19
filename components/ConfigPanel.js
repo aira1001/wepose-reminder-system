@@ -1,4 +1,9 @@
-export default function ConfigPanel({ config, setConfig }) {
+import { useState } from "react";
+
+export default function ConfigPanel({ config, setConfig, availableCountries = [] }) {
+  const [selectedCountry, setSelectedCountry] = useState("");
+  const [dateInput, setDateInput] = useState("");
+  
   const handleChange = (key) => (e) => {
     const val = Number(e.target.value);
     setConfig((prev) => ({ ...prev, [key]: isNaN(val) ? 0 : val }));
@@ -8,10 +13,12 @@ export default function ConfigPanel({ config, setConfig }) {
     setConfig((prev) => ({ ...prev, useBusinessDays: e.target.checked }));
   };
 
-  const handleHolidaysChange = (e) => {
-    // input dipisah koma/baris baru, format bebas asal bisa di-parse ke YYYY-MM-DD
-    const raw = e.target.value;
-    const holidays = raw
+  const holidaysByCountry = config.holidaysByCountry || {};
+  const configuredCountries = Object.keys(holidaysByCountry);
+  const dropdownOptions = Array.from(new Set([...availableCountries, ...configuredCountries])).sort();
+
+  function normalizeDates(raw) {
+    return raw
       .split(/[\n,]/)
       .map((s) => s.trim())
       .filter(Boolean)
@@ -20,8 +27,51 @@ export default function ConfigPanel({ config, setConfig }) {
         return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
       })
       .filter(Boolean);
-    setConfig((prev) => ({ ...prev, holidays, holidaysRaw: raw }));
-  };
+  }
+
+  function handleAppendDates() {
+    const country = selectedCountry.trim();
+    if (!country) return;
+ 
+    const newDates = normalizeDates(dateInput);
+    if (newDates.length === 0) return;
+ 
+    setConfig((prev) => {
+      const prevMap = prev.holidaysByCountry || {};
+      // Cari key existing yang match case-insensitive supaya tidak duplikat
+      // entry "Korea" dan "korea" jadi 2 baris berbeda.
+      const existingKey = Object.keys(prevMap).find(
+        (k) => k.trim().toLowerCase() === country.toLowerCase()
+      );
+      const key = existingKey || country;
+      const merged = Array.from(new Set([...(prevMap[key] || []), ...newDates])).sort();
+ 
+      return {
+        ...prev,
+        holidaysByCountry: { ...prevMap, [key]: merged },
+      };
+    });
+ 
+    setDateInput("");
+  }
+ 
+  function handleRemoveDate(country, dateStr) {
+    setConfig((prev) => {
+      const prevMap = prev.holidaysByCountry || {};
+      const updated = (prevMap[country] || []).filter((d) => d !== dateStr);
+      const next = { ...prevMap, [country]: updated };
+      if (updated.length === 0) delete next[country];
+      return { ...prev, holidaysByCountry: next };
+    });
+  }
+ 
+  function handleRemoveCountry(country) {
+    setConfig((prev) => {
+      const next = { ...(prev.holidaysByCountry || {}) };
+      delete next[country];
+      return { ...prev, holidaysByCountry: next };
+    });
+  }
 
   return (
     <div className="config-panel">
@@ -47,26 +97,63 @@ export default function ConfigPanel({ config, setConfig }) {
       </div>
 
       {config.useBusinessDays && (
-        <div className="holiday-input">
-          <label>
-            Daftar hari libur nasional (opsional, ikut di-skip seperti weekend)
+       <div className="holiday-manager">
+          <h4>🌍 Hari Libur Nasional per Negara</h4>
+          <p className="config-note">
+            Dicocokkan ke kolom <code>negara</code> di file excel (case-insensitive). Baris dengan negara yang belum
+            terdaftar di sini hanya akan skip Sabtu/Minggu saja.
+          </p>
+ 
+          <div className="holiday-add-row">
+            <select value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)}>
+              <option value="">-- Pilih negara --</option>
+              {dropdownOptions.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+ 
+ 
             <textarea
-              rows={2}
-              placeholder="contoh: 2026-08-17, 2026-12-25, 2026-01-01"
-              value={config.holidaysRaw || ""}
-              onChange={handleHolidaysChange}
+              rows={1}
+              placeholder="Tanggal libur (YYYY-MM-DD), mis. 2026-07-08, 2026-07-09"
+              value={dateInput}
+              onChange={(e) => setDateInput(e.target.value)}
             />
-          </label>
-          <span className="config-note">
-            Pisahkan tiap tanggal dengan koma atau baris baru, format bebas asal jelas (mis. 2026-12-25).
-          </span>
+ 
+            <button type="button" className="btn btn-secondary" onClick={handleAppendDates}>
+              + Tambah
+            </button>
+          </div>
+ 
+          {configuredCountries.length > 0 && (
+            <div className="holiday-list">
+              {configuredCountries.map((country) => (
+                <div key={country} className="holiday-country-block">
+                  <div className="holiday-country-header">
+                    <b>{country}</b>
+                    <button type="button" className="btn-remove-country" onClick={() => handleRemoveCountry(country)}>
+                      Hapus semua
+                    </button>
+                  </div>
+                  <div className="holiday-chip-row">
+                    {holidaysByCountry[country].map((d) => (
+                      <span key={d} className="holiday-chip">
+                        {d}
+                        <button type="button" onClick={() => handleRemoveDate(country, d)} aria-label="Hapus tanggal">
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      <p className="config-note">
-        D_visa (waktu proses kedutaan) dan D_prep (waktu proses wepose) diambil langsung dari kolom Excel per baris
-        data — nilai ini juga ikut dihitung sebagai hari kerja kalau toggle di atas aktif.
-      </p>
     </div>
   );
 }
