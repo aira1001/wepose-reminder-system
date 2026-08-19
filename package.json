@@ -6,19 +6,28 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "next": "14.2.35",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "xlsx": "^0.18.5",
-    "date-fns": "^3.6.0",
-    "ics": "^3.7.2",
-    "@fullcalendar/react": "^6.1.15",
     "@fullcalendar/core": "^6.1.15",
     "@fullcalendar/daygrid": "^6.1.15",
+    "@fullcalendar/interaction": "^6.1.15",
     "@fullcalendar/list": "^6.1.15",
-    "@fullcalendar/interaction": "^6.1.15"
+    "@fullcalendar/react": "^6.1.15",
+    "date-fns": "^3.6.0",
+    "drizzle-orm": "^0.45.2",
+    "ics": "^3.7.2",
+    "next": "14.2.35",
+    "pg": "^8.23.0",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.10"
   }
 }

@@ -1,0 +1,139 @@
+{
+  "id": "1f78be60-774d-4064-88e2-eee1c7ce8cab",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.parse_excel": {
+      "name": "parse_excel",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "parse_excel_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "nama": {
+          "name": "nama",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "no_paspor": {
+          "name": "no_paspor",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pic": {
+          "name": "pic",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tanggal_keberangkatan": {
+          "name": "tanggal_keberangkatan",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "jenis_visa": {
+          "name": "jenis_visa",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "negara": {
+          "name": "negara",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "appointment": {
+          "name": "appointment",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "waktu_proses_kedutaan": {
+          "name": "waktu_proses_kedutaan",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "waktu_proses_wepose": {
+          "name": "waktu_proses_wepose",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_parse_excel_no_paspor": {
+          "name": "idx_parse_excel_no_paspor",
+          "columns": [
+            {
+              "expression": "no_paspor",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}
