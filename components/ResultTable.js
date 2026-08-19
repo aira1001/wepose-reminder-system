@@ -16,6 +16,7 @@ export default function ResultTable({ rows }) {
             <th>No. Paspor</th>
             <th>Jenis Visa</th>
             <th>Negara</th>
+            <th>Tanggal libur kedutaan</th>
             <th>Keberangkatan</th>
             <th>Target Visa Selesai</th>
             <th>Latest Safe Submit</th>
@@ -30,11 +31,21 @@ export default function ResultTable({ rows }) {
         </thead>
         <tbody>
           {rows.map((row, idx) => (
-            <tr key={idx} className={row.error ? "row-error" : row.warnings?.length ? "row-warning" : ""}>
+            <tr
+              key={idx}
+              className={
+                row.error
+                  ? "row-error"
+                  : row.warnings?.length
+                    ? "row-warning"
+                    : ""
+              }
+            >
               <td>{row.nama || "-"}</td>
               <td>{row.no_paspor || "-"}</td>
               <td>{row.jenis_visa || "-"}</td>
               <td>{row.negara || "-"}</td>
+              <td>{fmt(row.holidaysByCountry)}</td>
               <td>{fmt(row.departureDate)}</td>
               <td>{fmt(row.targetVisaSelesai)}</td>
               <td className="cell-critical">{fmt(row.latestSafeSubmit)}</td>
@@ -48,7 +59,10 @@ export default function ResultTable({ rows }) {
                 {row.error ? (
                   <span className="badge badge-error">{row.error}</span>
                 ) : row.warnings?.length ? (
-                  <span className="badge badge-warning" title={row.warnings.join("\n")}>
+                  <span
+                    className="badge badge-warning"
+                    title={row.warnings.join("\n")}
+                  >
                     ⚠ {row.warnings.length} peringatan
                   </span>
                 ) : (

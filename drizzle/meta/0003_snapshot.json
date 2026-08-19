@@ -1,6 +1,6 @@
 {
-  "id": "471deb53-f9ce-4ed5-b9c4-d6120845d4ab",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "3a5d58ef-2864-4458-b669-cd7ab65722f3",
+  "prevId": "85280d45-d93d-4c36-8737-0a63aac45386",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -55,9 +55,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "negara": {
-          "name": "negara",
-          "type": "text",
+        "country_id": {
+          "name": "country_id",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": false
         },
@@ -117,7 +117,21 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "parse_excel_country_id_country_id_fk": {
+          "name": "parse_excel_country_id_country_id_fk",
+          "tableFrom": "parse_excel",
+          "tableTo": "country",
+          "columnsFrom": [
+            "country_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -148,6 +162,12 @@
         "event_id": {
           "name": "event_id",
           "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "parse_excel_id": {
+          "name": "parse_excel_id",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": false
         },
@@ -254,6 +274,92 @@
           "columns": [
             {
               "expression": "start_date",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "event_parse_excel_id_parse_excel_id_fk": {
+          "name": "event_parse_excel_id_parse_excel_id_fk",
+          "tableFrom": "event",
+          "tableTo": "parse_excel",
+          "columnsFrom": [
+            "parse_excel_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.country": {
+      "name": "country",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true,
+          "identity": {
+            "type": "always",
+            "name": "country_id_seq",
+            "schema": "public",
+            "increment": "1",
+            "startWith": "1",
+            "minValue": "1",
+            "maxValue": "9223372036854775807",
+            "cache": "1",
+            "cycle": false
+          }
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "holiday_date": {
+          "name": "holiday_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_country_name": {
+          "name": "idx_country_name",
+          "columns": [
+            {
+              "expression": "name",
               "isExpression": false,
               "asc": true,
               "nulls": "last"

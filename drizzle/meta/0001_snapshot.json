@@ -1,6 +1,6 @@
 {
-  "id": "471deb53-f9ce-4ed5-b9c4-d6120845d4ab",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "5c98c9da-389b-4e51-ba00-8c7033b447e0",
+  "prevId": "471deb53-f9ce-4ed5-b9c4-d6120845d4ab",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -151,6 +151,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "parce_excel_id": {
+          "name": "parce_excel_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
         "title": {
           "name": "title",
           "type": "text",
@@ -265,7 +271,21 @@
           "with": {}
         }
       },
-      "foreignKeys": {},
+      "foreignKeys": {
+        "event_parce_excel_id_parse_excel_id_fk": {
+          "name": "event_parce_excel_id_parse_excel_id_fk",
+          "tableFrom": "event",
+          "tableTo": "parse_excel",
+          "columnsFrom": [
+            "parce_excel_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

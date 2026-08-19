@@ -18,6 +18,7 @@
     "@fullcalendar/interaction": "^6.1.15",
     "@fullcalendar/list": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
+    "@fullcalendar/timegrid": "^6.1.21",
     "date-fns": "^3.6.0",
     "drizzle-orm": "^0.45.2",
     "ics": "^3.7.2",

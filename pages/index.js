@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import {
   parseExcelFile,
@@ -7,6 +7,10 @@ import {
 } from "../lib/excelParser";
 import { calculateAll, DEFAULT_CONFIG } from "../lib/dateCalc";
 import { buildCalendarEvents } from "../lib/calendarEvents";
+import {
+  mapEventRowsToCalculated,
+  mapDbEventsToCalendarEvents,
+} from "../lib/dbEventMapper";
 import { downloadIcsFile } from "../lib/icsExport";
 import ResultTable from "../components/ResultTable";
 import ConfigPanel from "../components/ConfigPanel";
@@ -22,25 +26,57 @@ export default function Home() {
   const [fileName, setFileName] = useState("");
   const [parseInfo, setParseInfo] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [dbEvents, setDbEvents] = useState([]);
+  const [loadingFromDb, setLoadingFromDb] = useState(false);
   const fileInputRef = useRef(null);
 
-  const calculatedRows = useMemo(
-    () => calculateAll(rawRows, config),
-    [rawRows, config],
-  );
+  const loadFromDb = useCallback(async () => {
+    try {
+      setLoadingFromDb(true);
+      const res = await fetch("/api/events");
+      const data = await res.json();
+      if (res.ok) {
+        setDbEvents(data.events || []);
+      } else {
+        console.error("Gagal load event dari DB:", data.error);
+      }
+    } catch (err) {
+      console.error("Gagal fetch /api/events:", err);
+    } finally {
+      setLoadingFromDb(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadFromDb();
+  }, [loadFromDb]);
+
+  const calculatedRows = useMemo(() => {
+    if (rawRows.length > 0) {
+      return calculateAll(rawRows, config);
+    }
+    return mapEventRowsToCalculated(dbEvents);
+  }, [rawRows, dbEvents, config]);
+
   const calendarEvents = useMemo(
-    () => buildCalendarEvents(calculatedRows),
-    [calculatedRows],
+    () =>
+      rawRows.length > 0
+        ? buildCalendarEvents(calculatedRows)
+        : mapDbEventsToCalendarEvents(dbEvents),
+    [rawRows, calculatedRows, dbEvents],
   );
 
   const availableCountries = useMemo(
     () =>
       Array.from(
         new Set(
-          rawRows.map((r) => String(r.negara || "").trim()).filter(Boolean),
+          rawRows
+            .map((r) => String(r.negara || "").trim())
+            .concat(dbEvents.map((e) => String(e.negara || "").trim()))
+            .filter(Boolean),
         ),
       ).sort(),
-    [rawRows],
+    [rawRows, dbEvents],
   );
 
   async function handleFileUpload(e) {
@@ -53,7 +89,6 @@ export default function Home() {
     setRawRows(rows);
     setParseInfo({ count: rows.length, unrecognizedHeaders, saving: true });
 
-    // Simpan baris data ke PostgreSQL (tabel parse_excel)
     try {
       const res = await fetch("/api/parse-excel", {
         method: "POST",
@@ -64,10 +99,33 @@ export default function Home() {
       if (!res.ok) {
         throw new Error(data.error || `Gagal menyimpan (status ${res.status})`);
       }
+
+      const rowsWithIds = rows.map((row, i) => ({
+        ...row,
+        parse_excel_id: data.ids?.[i] ?? null,
+      }));
+
+      // Hitung event kalender dari rows ber-id (untuk disimpan juga ke DB)
+      const computedRows = calculateAll(rowsWithIds, config);
+      const events = buildCalendarEvents(computedRows);
+
+      // Simpan event kalender ke PostgreSQL (tabel event)
+      const evRes = await fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ events }),
+      });
+      const evData = await evRes.json();
+      if (!evRes.ok) {
+        throw new Error(
+          evData.error || `Gagal simpan event (status ${evRes.status})`,
+        );
+      }
       setParseInfo({
         count: rows.length,
         unrecognizedHeaders,
         saved: data.inserted,
+        eventsSaved: evData.inserted,
       });
     } catch (err) {
       console.error(err);
@@ -93,6 +151,7 @@ export default function Home() {
     setRawRows([]);
     setFileName("");
     setParseInfo(null);
+    setDbEvents([]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
@@ -127,7 +186,7 @@ export default function Home() {
           >
             ⬇ Download Template Excel
           </button>
-          {rawRows.length > 0 && (
+          {(rawRows.length > 0 || dbEvents.length > 0) && (
             <button className="btn btn-ghost" onClick={resetAll}>
               ✕ Reset
             </button>
@@ -141,6 +200,8 @@ export default function Home() {
               {parseInfo.saving && " — sedang menyimpan ke database…"}
               {parseInfo.saved !== undefined &&
                 ` → ${parseInfo.saved} baris tersimpan ke PostgreSQL.`}
+              {parseInfo.eventsSaved !== undefined &&
+                ` ${parseInfo.eventsSaved} event kalender tersimpan.`}
             </p>
             {parseInfo.saveError && (
               <p className="warn-text">
@@ -158,8 +219,11 @@ export default function Home() {
         )}
       </section>
 
-      {rawRows.length > 0 && (
+      {(rawRows.length > 0 || dbEvents.length > 0) && (
         <>
+          {loadingFromDb && (
+            <p className="parse-info">⏳ Memuat data dari database…</p>
+          )}
           <ConfigPanel
             config={config}
             setConfig={setConfig}
@@ -228,7 +292,7 @@ export default function Home() {
         </>
       )}
 
-      {rawRows.length === 0 && (
+      {rawRows.length === 0 && dbEvents.length === 0 && (
         <div className="empty-state">
           <p>
             Belum ada data. Upload file Excel atau download template dulu untuk

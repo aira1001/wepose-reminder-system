@@ -7,6 +7,7 @@ import {
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
+import { country } from "./country";
 
 export const parseExcel = pgTable(
   "parse_excel",
@@ -17,7 +18,7 @@ export const parseExcel = pgTable(
     pic: text("pic"),
     tanggal_keberangkatan: date("tanggal_keberangkatan", { mode: "string" }),
     jenis_visa: text("jenis_visa"),
-    negara: text("negara"),
+    country_id: bigint({ mode: "number" }).references(() => country.id),
     appointment: date("appointment", { mode: "string" }),
     waktu_proses_kedutaan: integer("waktu_proses_kedutaan"),
     waktu_proses_wepose: integer("waktu_proses_wepose"),
