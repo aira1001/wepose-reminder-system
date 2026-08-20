@@ -1,6 +1,4 @@
-import { defineConfig } from "drizzle-kit";
-
-export default defineConfig({
+module.exports = {
   dialect: "postgresql",
   schema: "./db/index.js",
   out: "./drizzle",
@@ -12,4 +10,4 @@ export default defineConfig({
   breakpoints: true,
   verbose: true,
   strict: true,
-});
+};
