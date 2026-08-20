@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:vercel": "bash ./scripts/vercel-build.sh",
+    "build:vercel": "node ./scripts/migrate.js && npx next build",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
@@ -20,6 +20,7 @@
     "@fullcalendar/list": "^6.1.15",
     "@fullcalendar/react": "^6.1.15",
     "@fullcalendar/timegrid": "^6.1.21",
+    "@vercel/postgres": "^0.10.0",
     "date-fns": "^3.6.0",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
