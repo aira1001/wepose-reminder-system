@@ -13,6 +13,26 @@ npm run dev
 
 Buka `http://localhost:3000`.
 
+## Deploy di Vercel (Dengan Auto Migration)
+
+Project ini menyediakan script build khusus untuk Vercel yang akan:
+
+1. Menjalankan migration database via Drizzle.
+2. Melanjutkan proses `next build`.
+
+Script: `scripts/vercel-build.sh`
+
+Set **Build Command** di Vercel menjadi:
+
+```bash
+npm run build:vercel
+```
+
+Pastikan environment variable ini tersedia di Vercel:
+
+- `DATABASE_URL` (wajib)
+- `SKIP_DB_MIGRATION=1` (opsional, kalau ingin skip migration di environment tertentu)
+
 ## Alur Pakai
 
 1. Klik **Download Template Excel** untuk lihat format kolom yang benar (atau siapkan sendiri
