@@ -2,7 +2,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import listPlugin from "@fullcalendar/list";
 import interactionPlugin from "@fullcalendar/interaction";
-import { STAGE_DEFS } from "../lib/calendarEvents";
+import { HOLIDAY_BG_COLOR, STAGE_DEFS } from "../lib/calendarEvents";
 
 export default function VisaCalendar({ events, onEventClick }) {
   return (
@@ -14,6 +14,10 @@ export default function VisaCalendar({ events, onEventClick }) {
             {s.label}
           </div>
         ))}
+        <div className="legend-item">
+          <span className="legend-dot" style={{ backgroundColor: HOLIDAY_BG_COLOR }} />
+          Hari Libur Nasional
+        </div>
       </div>
 
       <FullCalendar

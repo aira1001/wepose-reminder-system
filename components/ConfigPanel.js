@@ -3,6 +3,7 @@ import { useState } from "react";
 export default function ConfigPanel({ config, setConfig, availableCountries = [] }) {
   const [selectedCountry, setSelectedCountry] = useState("");
   const [dateInput, setDateInput] = useState("");
+  const ymdRe = /^\d{4}-\d{2}-\d{2}$/;
   
   const handleChange = (key) => (e) => {
     const val = Number(e.target.value);
@@ -22,10 +23,7 @@ export default function ConfigPanel({ config, setConfig, availableCountries = []
       .split(/[\n,]/)
       .map((s) => s.trim())
       .filter(Boolean)
-      .map((s) => {
-        const d = new Date(s);
-        return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
-      })
+      .map((s) => (ymdRe.test(s) ? s : null))
       .filter(Boolean);
   }
 

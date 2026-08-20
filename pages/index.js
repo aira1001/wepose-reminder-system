@@ -7,6 +7,7 @@ import {
 } from "../lib/excelParser";
 import { calculateAll, DEFAULT_CONFIG } from "../lib/dateCalc";
 import { buildCalendarEvents } from "../lib/calendarEvents";
+import { buildHolidayCalendarEvents } from "../lib/calendarEvents";
 import {
   mapEventRowsToCalculated,
   mapDbEventsToCalendarEvents,
@@ -58,13 +59,19 @@ export default function Home() {
     return mapEventRowsToCalculated(dbEvents, config);
   }, [rawRows, dbEvents, config]);
 
-  const calendarEvents = useMemo(
-    () =>
+  const holidayCalendarEvents = useMemo(
+    () => buildHolidayCalendarEvents(config),
+    [config],
+  );
+
+  const calendarEvents = useMemo(() => {
+    const baseEvents =
       rawRows.length > 0
         ? buildCalendarEvents(calculatedRows)
-        : mapDbEventsToCalendarEvents(dbEvents),
-    [rawRows, calculatedRows, dbEvents],
-  );
+        : mapDbEventsToCalendarEvents(dbEvents);
+
+    return [...baseEvents, ...holidayCalendarEvents];
+  }, [rawRows, calculatedRows, dbEvents, holidayCalendarEvents]);
 
   const availableCountries = useMemo(
     () =>
