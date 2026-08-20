@@ -1,7 +1,9 @@
 import { format } from "date-fns";
 
 function fmt(d) {
-  return d ? format(d, "dd MMM yyyy") : "-";
+  if (Array.isArray(d)) return d.length ? d.map((x) => fmt(x)).join(", ") : "-";
+  if (!d) return "-";
+  return format(d, "yyyy-MM-dd");
 }
 
 export default function ResultTable({ rows }) {
@@ -16,6 +18,7 @@ export default function ResultTable({ rows }) {
             <th>No. Paspor</th>
             <th>Jenis Visa</th>
             <th>Negara</th>
+            <th>waktu Proses Kedutaan</th>
             <th>Tanggal libur kedutaan</th>
             <th>Keberangkatan</th>
             <th>Target Visa Selesai</th>
@@ -45,7 +48,8 @@ export default function ResultTable({ rows }) {
               <td>{row.no_paspor || "-"}</td>
               <td>{row.jenis_visa || "-"}</td>
               <td>{row.negara || "-"}</td>
-              <td>{fmt(row.holidaysByCountry)}</td>
+              <td>{row.processing_time || "-"}</td>
+              <td>{fmt(row.holidays)}</td>
               <td>{fmt(row.departureDate)}</td>
               <td>{fmt(row.targetVisaSelesai)}</td>
               <td className="cell-critical">{fmt(row.latestSafeSubmit)}</td>

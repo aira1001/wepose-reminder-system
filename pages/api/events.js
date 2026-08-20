@@ -104,7 +104,8 @@ async function handleGet(_req, res) {
     const rows = await db
       .select({
         event: event,
-        negara_country: country.name,
+        negara: country.name,
+        waktu_proses_kedutaan: parseExcel.waktu_proses_kedutaan,
       })
       .from(event)
       .leftJoin(parseExcel, eq(event.parse_excel_id, parseExcel.id))
@@ -112,9 +113,10 @@ async function handleGet(_req, res) {
       .where(isNull(event.deleted_at))
       .orderBy(event.start_date, event.id);
 
-    const events = rows.map(({ event: ev, negara_country: negara }) => ({
+    const events = rows.map(({ event: ev, negara, waktu_proses_kedutaan }) => ({
       ...ev,
       negara,
+      waktu_proses_kedutaan: waktu_proses_kedutaan || null,
     }));
     return res.status(200).json({ events });
   } catch (err) {

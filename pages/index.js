@@ -55,7 +55,7 @@ export default function Home() {
     if (rawRows.length > 0) {
       return calculateAll(rawRows, config);
     }
-    return mapEventRowsToCalculated(dbEvents);
+    return mapEventRowsToCalculated(dbEvents, config);
   }, [rawRows, dbEvents, config]);
 
   const calendarEvents = useMemo(
