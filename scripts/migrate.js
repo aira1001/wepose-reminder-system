@@ -18,6 +18,7 @@ const db = drizzle(pool);
 
 async function main() {
   console.log("Running migrations...");
+  console.log("Using connection string:", connectionString);
   await migrate(db, { migrationsFolder: "./drizzle" });
   await pool.end();
   console.log("Migrations complete!");
