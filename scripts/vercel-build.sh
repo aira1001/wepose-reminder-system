@@ -14,8 +14,3 @@ else
   echo "[vercel-build] Running Drizzle migrations"
   npm exec --yes drizzle-kit migrate --config=drizzle.config.js
 fi
-
-echo "[vercel-build] Building Next.js app"
-npx next build
-
-echo "[vercel-build] Build completed successfully"
