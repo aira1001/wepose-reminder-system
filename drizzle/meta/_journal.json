@@ -29,6 +29,13 @@
       "when": 1787134168636,
       "tag": "0003_generate_country_and_his_fk",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787209996813,
+      "tag": "0004_add_holdays_date_json",
+      "breakpoints": true
     }
   ]
 }

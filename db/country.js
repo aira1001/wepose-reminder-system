@@ -13,6 +13,7 @@ export const country = pgTable(
     id: bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
     name: text("name"),
     holiday_date: date("holiday_date", { mode: "string" }),
+    holiday_dates_json: text("holiday_dates_json").notNull().default("[]"),
     created_at: timestamp("created_at", {
       withTimezone: true,
       mode: "date",

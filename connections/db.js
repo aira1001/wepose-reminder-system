@@ -1,6 +1,6 @@
 import pg from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
-import * as schema from "../db/parse_excel";
+import * as schema from "../db";
 
 const connectionString = process.env.DATABASE_URL;
 

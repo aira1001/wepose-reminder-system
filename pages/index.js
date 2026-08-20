@@ -6,8 +6,10 @@ import {
   downloadWorkbook,
 } from "../lib/excelParser";
 import { calculateAll, DEFAULT_CONFIG } from "../lib/dateCalc";
-import { buildCalendarEvents } from "../lib/calendarEvents";
-import { buildHolidayCalendarEvents } from "../lib/calendarEvents";
+import {
+  buildCalendarEvents,
+  buildHolidayCalendarEvents,
+} from "../lib/calendarEvents";
 import {
   mapEventRowsToCalculated,
   mapDbEventsToCalendarEvents,
@@ -21,6 +23,37 @@ const VisaCalendar = dynamic(() => import("../components/VisaCalendar"), {
   ssr: false,
 });
 
+function normalizeHolidaysByCountry(input) {
+  const out = {};
+  Object.entries(input || {}).forEach(([country, dates]) => {
+    const key = String(country || "").trim();
+    if (!key) return;
+    const normalizedDates = Array.isArray(dates)
+      ? Array.from(
+          new Set(
+            dates
+              .map((d) => String(d || "").trim())
+              .filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)),
+          ),
+        ).sort()
+      : [];
+    out[key] = normalizedDates;
+  });
+  return out;
+}
+
+function getChangedCountries(prevMap, nextMap) {
+  const names = new Set([
+    ...Object.keys(prevMap || {}),
+    ...Object.keys(nextMap || {}),
+  ]);
+  return Array.from(names).filter((name) => {
+    const prev = JSON.stringify((prevMap && prevMap[name]) || []);
+    const next = JSON.stringify((nextMap && nextMap[name]) || []);
+    return prev !== next;
+  });
+}
+
 export default function Home() {
   const [rawRows, setRawRows] = useState([]);
   const [config, setConfig] = useState(DEFAULT_CONFIG);
@@ -29,17 +62,37 @@ export default function Home() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [dbEvents, setDbEvents] = useState([]);
   const [loadingFromDb, setLoadingFromDb] = useState(false);
+  const [holidaySyncState, setHolidaySyncState] = useState({
+    status: "idle",
+    message: "",
+  });
   const fileInputRef = useRef(null);
+  const prevHolidayMapRef = useRef(null);
 
   const loadFromDb = useCallback(async () => {
     try {
       setLoadingFromDb(true);
-      const res = await fetch("/api/events");
-      const data = await res.json();
-      if (res.ok) {
-        setDbEvents(data.events || []);
+      const [eventRes, holidayRes] = await Promise.all([
+        fetch("/api/events"),
+        fetch("/api/country-holidays"),
+      ]);
+
+      const eventData = await eventRes.json();
+      if (eventRes.ok) {
+        setDbEvents(eventData.events || []);
       } else {
-        console.error("Gagal load event dari DB:", data.error);
+        console.error("Gagal load event dari DB:", eventData.error);
+      }
+
+      const holidayData = await holidayRes.json();
+      if (holidayRes.ok) {
+        const holidayMap = normalizeHolidaysByCountry(
+          holidayData.holidaysByCountry || {},
+        );
+        prevHolidayMapRef.current = holidayMap;
+        setConfig((prev) => ({ ...prev, holidaysByCountry: holidayMap }));
+      } else {
+        console.error("Gagal load holiday negara:", holidayData.error);
       }
     } catch (err) {
       console.error("Gagal fetch /api/events:", err);
@@ -51,6 +104,71 @@ export default function Home() {
   useEffect(() => {
     loadFromDb();
   }, [loadFromDb]);
+
+  useEffect(() => {
+    if (rawRows.length > 0) return;
+
+    const currentMap = normalizeHolidaysByCountry(
+      config.holidaysByCountry || {},
+    );
+    const prevMap = prevHolidayMapRef.current;
+
+    if (!prevMap) {
+      prevHolidayMapRef.current = currentMap;
+      return;
+    }
+
+    const changedCountries = getChangedCountries(prevMap, currentMap);
+    if (changedCountries.length === 0) return;
+
+    prevHolidayMapRef.current = currentMap;
+    let cancelled = false;
+
+    async function persistHolidayAndSyncEvents() {
+      setHolidaySyncState({
+        status: "syncing",
+        message: "Menyimpan hari libur dan sinkronisasi event...",
+      });
+
+      try {
+        const res = await fetch("/api/country-holidays", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            holidaysByCountry: currentMap,
+            changedCountries,
+            syncEvents: true,
+          }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data.error || "Gagal sinkronisasi event");
+        }
+
+        if (!cancelled) {
+          setHolidaySyncState({
+            status: "success",
+            message: `Sinkronisasi selesai (${data.syncedParseExcel || 0} data pemohon diperbarui).`,
+          });
+          await loadFromDb();
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setHolidaySyncState({
+            status: "error",
+            message: err.message || "Gagal sinkronisasi holiday/event",
+          });
+        }
+      }
+    }
+
+    persistHolidayAndSyncEvents();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [rawRows.length, config.holidaysByCountry, loadFromDb]);
 
   const calculatedRows = useMemo(() => {
     if (rawRows.length > 0) {
@@ -236,6 +354,15 @@ export default function Home() {
             setConfig={setConfig}
             availableCountries={availableCountries}
           />
+
+          {rawRows.length === 0 && holidaySyncState.status !== "idle" && (
+            <p className="parse-info">
+              {holidaySyncState.status === "syncing" && "⏳ "}
+              {holidaySyncState.status === "success" && "✅ "}
+              {holidaySyncState.status === "error" && "⚠ "}
+              {holidaySyncState.message}
+            </p>
+          )}
 
           <section className="actions-row">
             <button className="btn btn-primary" onClick={handleExportIcs}>

@@ -1,0 +1,1 @@
+ALTER TABLE "country" ADD COLUMN "holiday_dates_json" text DEFAULT '[]' NOT NULL;

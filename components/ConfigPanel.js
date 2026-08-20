@@ -1,10 +1,13 @@
 import { useState } from "react";
 
-export default function ConfigPanel({ config, setConfig, availableCountries = [] }) {
+export default function ConfigPanel({
+  config,
+  setConfig,
+  availableCountries = [],
+}) {
   const [selectedCountry, setSelectedCountry] = useState("");
   const [dateInput, setDateInput] = useState("");
-  const ymdRe = /^\d{4}-\d{2}-\d{2}$/;
-  
+
   const handleChange = (key) => (e) => {
     const val = Number(e.target.value);
     setConfig((prev) => ({ ...prev, [key]: isNaN(val) ? 0 : val }));
@@ -16,43 +19,48 @@ export default function ConfigPanel({ config, setConfig, availableCountries = []
 
   const holidaysByCountry = config.holidaysByCountry || {};
   const configuredCountries = Object.keys(holidaysByCountry);
-  const dropdownOptions = Array.from(new Set([...availableCountries, ...configuredCountries])).sort();
+  const dropdownOptions = Array.from(
+    new Set([...availableCountries, ...configuredCountries]),
+  ).sort();
 
   function normalizeDates(raw) {
     return raw
       .split(/[\n,]/)
       .map((s) => s.trim())
       .filter(Boolean)
-      .map((s) => (ymdRe.test(s) ? s : null))
+      .map((s) => {
+        const d = new Date(s);
+        return isNaN(d.getTime()) ? null : d.toISOString().slice(0, 10);
+      })
       .filter(Boolean);
   }
 
   function handleAppendDates() {
     const country = selectedCountry.trim();
     if (!country) return;
- 
+
     const newDates = normalizeDates(dateInput);
     if (newDates.length === 0) return;
- 
+
     setConfig((prev) => {
       const prevMap = prev.holidaysByCountry || {};
-      // Cari key existing yang match case-insensitive supaya tidak duplikat
-      // entry "Korea" dan "korea" jadi 2 baris berbeda.
       const existingKey = Object.keys(prevMap).find(
-        (k) => k.trim().toLowerCase() === country.toLowerCase()
+        (k) => k.trim().toLowerCase() === country.toLowerCase(),
       );
       const key = existingKey || country;
-      const merged = Array.from(new Set([...(prevMap[key] || []), ...newDates])).sort();
- 
+      const merged = Array.from(
+        new Set([...(prevMap[key] || []), ...newDates]),
+      ).sort();
+
       return {
         ...prev,
         holidaysByCountry: { ...prevMap, [key]: merged },
       };
     });
- 
+
     setDateInput("");
   }
- 
+
   function handleRemoveDate(country, dateStr) {
     setConfig((prev) => {
       const prevMap = prev.holidaysByCountry || {};
@@ -62,7 +70,7 @@ export default function ConfigPanel({ config, setConfig, availableCountries = []
       return { ...prev, holidaysByCountry: next };
     });
   }
- 
+
   function handleRemoveCountry(country) {
     setConfig((prev) => {
       const next = { ...(prev.holidaysByCountry || {}) };
@@ -77,7 +85,11 @@ export default function ConfigPanel({ config, setConfig, availableCountries = []
 
       <div className="mode-toggle">
         <label className="toggle-label">
-          <input type="checkbox" checked={config.useBusinessDays} onChange={handleToggleBusinessDays} />
+          <input
+            type="checkbox"
+            checked={config.useBusinessDays}
+            onChange={handleToggleBusinessDays}
+          />
           Hitung berdasarkan <b>hari kerja</b> (Sabtu &amp; Minggu di-skip)
         </label>
         <span className="mode-hint">
@@ -90,20 +102,29 @@ export default function ConfigPanel({ config, setConfig, availableCountries = []
       <div className="config-grid">
         <label>
           Buffer Safe (sebelum keberangkatan)
-          <input type="number" min="0" value={config.bufferSafe} onChange={handleChange("bufferSafe")} />
+          <input
+            type="number"
+            min="0"
+            value={config.bufferSafe}
+            onChange={handleChange("bufferSafe")}
+          />
         </label>
       </div>
 
       {config.useBusinessDays && (
-       <div className="holiday-manager">
+        <div className="holiday-manager">
           <h4>🌍 Hari Libur Nasional per Negara</h4>
           <p className="config-note">
-            Dicocokkan ke kolom <code>negara</code> di file excel (case-insensitive). Baris dengan negara yang belum
-            terdaftar di sini hanya akan skip Sabtu/Minggu saja.
+            Dicocokkan ke kolom <code>negara</code> di file excel
+            (case-insensitive). Baris dengan negara yang belum terdaftar di sini
+            hanya akan skip Sabtu/Minggu saja.
           </p>
- 
+
           <div className="holiday-add-row">
-            <select value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)}>
+            <select
+              value={selectedCountry}
+              onChange={(e) => setSelectedCountry(e.target.value)}
+            >
               <option value="">-- Pilih negara --</option>
               {dropdownOptions.map((c) => (
                 <option key={c} value={c}>
@@ -111,27 +132,34 @@ export default function ConfigPanel({ config, setConfig, availableCountries = []
                 </option>
               ))}
             </select>
- 
- 
+
             <textarea
               rows={1}
               placeholder="Tanggal libur (YYYY-MM-DD), mis. 2026-07-08, 2026-07-09"
               value={dateInput}
               onChange={(e) => setDateInput(e.target.value)}
             />
- 
-            <button type="button" className="btn btn-secondary" onClick={handleAppendDates}>
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleAppendDates}
+            >
               + Tambah
             </button>
           </div>
- 
+
           {configuredCountries.length > 0 && (
             <div className="holiday-list">
               {configuredCountries.map((country) => (
                 <div key={country} className="holiday-country-block">
                   <div className="holiday-country-header">
                     <b>{country}</b>
-                    <button type="button" className="btn-remove-country" onClick={() => handleRemoveCountry(country)}>
+                    <button
+                      type="button"
+                      className="btn-remove-country"
+                      onClick={() => handleRemoveCountry(country)}
+                    >
                       Hapus semua
                     </button>
                   </div>
@@ -139,7 +167,11 @@ export default function ConfigPanel({ config, setConfig, availableCountries = []
                     {holidaysByCountry[country].map((d) => (
                       <span key={d} className="holiday-chip">
                         {d}
-                        <button type="button" onClick={() => handleRemoveDate(country, d)} aria-label="Hapus tanggal">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveDate(country, d)}
+                          aria-label="Hapus tanggal"
+                        >
                           ×
                         </button>
                       </span>
@@ -151,7 +183,6 @@ export default function ConfigPanel({ config, setConfig, availableCountries = []
           )}
         </div>
       )}
-
     </div>
   );
 }
