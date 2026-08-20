@@ -12,5 +12,6 @@ else
   fi
 
   echo "[vercel-build] Running Drizzle migrations"
-  npm exec --yes drizzle-kit migrate --config=drizzle.config.js
+  npx drizzle-kit migrate
+
 fi

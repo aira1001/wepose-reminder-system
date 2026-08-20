@@ -21,6 +21,7 @@
     "@fullcalendar/react": "^6.1.15",
     "@fullcalendar/timegrid": "^6.1.21",
     "date-fns": "^3.6.0",
+    "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "ics": "^3.7.2",
     "next": "14.2.35",
